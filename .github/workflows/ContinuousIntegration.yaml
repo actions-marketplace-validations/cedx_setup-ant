@@ -1,0 +1,34 @@
+name: continuous-integration
+on: push
+
+defaults:
+  run:
+    shell: pwsh
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Fetch sources
+        uses: actions/checkout@v6
+      - name: Install dependencies
+        run: ./Invoke.ps1 Install
+      - name: Run tests
+        run: ./Invoke.ps1 Test
+  invoke:
+    needs: test
+    runs-on: ${{matrix.platform}}
+    strategy:
+      matrix:
+        platform: [macos-latest, ubuntu-latest, windows-latest]
+    steps:
+      - name: Set up Java
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: 25
+      - name: Set up Ant
+        uses: cedx/setup-ant@main
+        with:
+          optional-tasks: true
+      - run: ant -version

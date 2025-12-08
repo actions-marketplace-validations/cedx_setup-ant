@@ -1,36 +1,30 @@
-name: main
+name: continuous-integration
 on: push
+
+defaults:
+  run:
+    shell: pwsh
+
 jobs:
   test:
     runs-on: ${{matrix.platform}}
     strategy:
       matrix:
-        platform: [macos-latest, ubuntu-latest, windows-latest]
+        platform: [ubuntu-latest, windows-latest]
     steps:
       - name: Fetch sources
-        uses: actions/checkout@v3
+        uses: actions/checkout@v6
       - name: Set up Java
-        uses: actions/setup-java@v3
+        uses: actions/setup-java@v5
         with:
           distribution: temurin
-          java-version: 17
+          java-version: 25
       - name: Set up Ant
-        uses: cedx/setup-ant@v1
+        uses: cedx/setup-ant@v6
         with:
           optional-tasks: true
           version: latest
-      - name: Cache dependencies
-        uses: actions/cache@v3
-        with:
-          path: lib
-          key: java-${{runner.os}}-ivy-${{hashFiles('ivy.xml')}}
-          restore-keys: java-${{runner.os}}-ivy-
       - name: Install dependencies
         run: ant install
       - name: Run tests
         run: ant -emacs test
-      - name: Collect code coverage
-        if: success()
-        uses: codecov/codecov-action@v3
-        with:
-          files: coverage.xml
